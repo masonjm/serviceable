@@ -1,11 +1,14 @@
 class Transfer
-  def call(amount:, from:, to:)
-    Account.transaction do
-      from.balance -= amount
-      to.balance += amount
+  class InsufficientFunds < StandardError; end
 
-      from.save!
-      to.save!
-    end
+  attr_reader :transfer
+
+  def initialize(transfer: InternalTransfer.new)
+    @transfer = transfer
+  end
+
+  def call(amount:, from:, to:)
+    raise InsufficientFunds unless from.balance >= amount
+    transfer.call(amount: amount, from: from, to: to)
   end
 end
